@@ -1,0 +1,2 @@
+1,skoda,taha,karoq,mazot,4,auto,20000.00,1
+2,wolkzwagen,ilyas,polo,essence,5,manuelle,100000.00,1

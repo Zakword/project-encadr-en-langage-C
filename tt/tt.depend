@@ -1,0 +1,10 @@
+# depslib dependency file v1.0
+1734981382 source:c:\users\taha\desktop\project 101\tt\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"car_rental.h"
+
+1734979500 c:\users\taha\desktop\project 101\tt\car_rental.h
+	"car_rental.h"
+
