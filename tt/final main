@@ -1,0 +1,247 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "car_rental.h"
+
+#define MAX_CARS 100
+#define MAX_STRING 50
+void lanvers(Car *a, Car *b) {
+    Car temp = *a;
+    *a = *b;
+    *b = temp;
+}
+void trimarque(Car cars[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (strcmp(cars[j].brand, cars[j + 1].brand) > 0) {
+                lanvers(&cars[j], &cars[j + 1]);
+            }
+        }
+    }
+}
+void triprix(Car cars[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (cars[j].rentalPrice > cars[j + 1].rentalPrice) {  // Comparaison correcte par prix
+                lanvers(&cars[j], &cars[j + 1]);
+            }
+        }
+    }
+}
+void chargerVoituresDepuisFichier(Car voitures[], int *nombreVoitures) {
+    FILE *fichier = fopen("voiture.txt", "r");
+    if (!fichier) {
+        *nombreVoitures = 0;
+        return;
+    }
+    *nombreVoitures = 0;
+    while (fscanf(fichier, "%d,%[^,],%[^,],%[^,],%[^,],%d,%[^,],%f,%d\n",
+                  &voitures[*nombreVoitures].id,
+                  voitures[*nombreVoitures].brand,
+                  voitures[*nombreVoitures].user,
+                  voitures[*nombreVoitures].model,
+                  voitures[*nombreVoitures].fuelType,
+                  &voitures[*nombreVoitures].seats,
+                  voitures[*nombreVoitures].transmission,
+                  &voitures[*nombreVoitures].rentalPrice,
+                  &voitures[*nombreVoitures].isAvailable) == 9) {
+        (*nombreVoitures)++;
+    }
+    fclose(fichier);
+}
+void sauvegarderVoituresDansFichier(Car voitures[], int nombreVoitures) {
+    FILE *fichier = fopen("voiture.txt", "w");
+    if (!fichier) {
+        printf("Impossible d'ouvrir le fichier pour l'écriture.\n");
+        return;
+    }
+
+    for (int i = 0; i < nombreVoitures; i++) {
+        fprintf(fichier, "%d,%s,%s,%s,%s,%d,%s,%.2f,%d\n",
+                voitures[i].id, voitures[i].brand, voitures[i].user,
+                voitures[i].model, voitures[i].fuelType, voitures[i].seats,
+                voitures[i].transmission, voitures[i].rentalPrice, voitures[i].isAvailable);
+    }
+
+    fclose(fichier);
+}
+void afficherVoitures(Car voitures[], int nombreVoitures) {
+    printf("\nVoitures disponibles :\n");
+    printf("ID | Marque | Utilisateur | Modèle | Type de carburant | Places | Transmission | Prix/jour | Disponibilité\n");
+    printf("---------------------------------------------------------------------------------------------\n");
+
+    for (int i = 0; i < nombreVoitures; i++) {
+        printf("%d | %s | %s | %s | %s | %d | %s | %.2f | %s\n",
+               voitures[i].id, voitures[i].brand, voitures[i].user,
+               voitures[i].model, voitures[i].fuelType, voitures[i].seats,
+               voitures[i].transmission, voitures[i].rentalPrice,
+               voitures[i].isAvailable ? "Disponible" : "Indisponible");
+    }
+}
+void ajouterVoiture() {
+    FILE *fichier = fopen("voiture.txt", "a");
+    if (!fichier) {
+        fichier = fopen("voiture.txt", "w");
+        if (!fichier) {
+            printf("Impossible de créer le fichier pour l'ajout.\n");
+            return;
+        }
+    }
+
+    Car nouvelleVoiture;
+    printf("Entrez les détails de la voiture :\n");
+    printf("ID : ");
+    scanf("%d", &nouvelleVoiture.id);
+    printf("Marque : ");
+    scanf("%s", nouvelleVoiture.brand);
+    printf("Utilisateur : ");
+    scanf("%s", nouvelleVoiture.user);
+    printf("Modèle : ");
+    scanf("%s", nouvelleVoiture.model);
+    printf("Type de carburant : ");
+    scanf("%s", nouvelleVoiture.fuelType);
+    printf("Nombre de places : ");
+    scanf("%d", &nouvelleVoiture.seats);
+    printf("Transmission : ");
+    scanf("%s", nouvelleVoiture.transmission);
+    printf("Prix de location par jour : ");
+    scanf("%f", &nouvelleVoiture.rentalPrice);
+    printf("Disponibilité (1 pour disponible, 0 pour indisponible) : ");
+    scanf("%d", &nouvelleVoiture.isAvailable);
+    fprintf(fichier, "%d,%s,%s,%s,%s,%d,%s,%.2f,%d\n",
+            nouvelleVoiture.id, nouvelleVoiture.brand, nouvelleVoiture.user,
+            nouvelleVoiture.model, nouvelleVoiture.fuelType, nouvelleVoiture.seats,
+            nouvelleVoiture.transmission, nouvelleVoiture.rentalPrice, nouvelleVoiture.isAvailable);
+    fclose(fichier);
+    printf("Voiture ajoutée avec succès !\n");
+}
+void modifierVoiture() {
+    Car voitures[MAX_CARS];
+    int nombreVoitures;
+    chargerVoituresDepuisFichier(voitures, &nombreVoitures);
+    if (nombreVoitures == 0) {
+        printf("Aucune voiture disponible à modifier.\n");
+        return;
+    }
+
+    int id, trouve = 0;
+    printf("Entrez l'ID de la voiture à modifier : ");
+    scanf("%d", &id);
+
+    for (int i = 0; i < nombreVoitures; i++) {
+        if (voitures[i].id == id) {
+            trouve = 1;
+            printf("Entrez les nouveaux détails pour la voiture (ID : %d) :\n", id);
+            printf("Marque : ");
+            scanf("%s", voitures[i].brand);
+            printf("Utilisateur : ");
+            scanf("%s", voitures[i].user);
+            printf("Modèle : ");
+            scanf("%s", voitures[i].model);
+            printf("Type de carburant : ");
+            scanf("%s", voitures[i].fuelType);
+            printf("Nombre de places : ");
+            scanf("%d", &voitures[i].seats);
+            printf("Transmission : ");
+            scanf("%s", voitures[i].transmission);
+            printf("Prix de location par jour : ");
+            scanf("%f", &voitures[i].rentalPrice);
+            printf("Disponibilité (1 pour disponible, 0 pour indisponible) : ");
+            scanf("%d", &voitures[i].isAvailable);
+            break;
+        }
+    }
+
+    if (!trouve) {
+        printf("Voiture avec l'ID %d introuvable.\n", id);
+    } else {
+        sauvegarderVoituresDansFichier(voitures, nombreVoitures);
+        printf("Détails de la voiture mis à jour avec succès !\n");
+    }
+}
+void supprimerVoiture() {
+    Car voitures[MAX_CARS];
+    int nombreVoitures;
+    chargerVoituresDepuisFichier(voitures, &nombreVoitures);
+    if (nombreVoitures == 0) {
+        printf("Aucune voiture disponible à supprimer.\n");
+        return;
+    }
+
+    int id, trouve = 0;
+    printf("Entrez l'ID de la voiture à supprimer : ");
+    scanf("%d", &id);
+
+    for (int i = 0; i < nombreVoitures; i++) {
+        if (voitures[i].id == id) {
+            trouve = 1;
+            for (int j = i; j < nombreVoitures - 1; j++) {
+                voitures[j] = voitures[j + 1];
+            }
+            nombreVoitures--;
+            break;
+        }
+    }
+
+    if (!trouve) {
+        printf("Voiture avec l'ID %d introuvable.\n", id);
+    } else {
+        sauvegarderVoituresDansFichier(voitures, nombreVoitures);
+        printf("Voiture supprimée avec succès !\n");
+    }
+}
+int main() {
+    int choix;
+    Car voitures[MAX_CARS];
+    int nombreVoitures;
+
+    chargerVoituresDepuisFichier(voitures, &nombreVoitures);
+
+    do {
+        printf("\nGestion des voitures de location :\n");
+        printf("1. Afficher les voitures\n");
+        printf("2. Ajouter une voiture\n");
+        printf("3. Modifier une voiture\n");
+        printf("4. Supprimer une voiture\n");
+        printf("5. Trier les voitures par marque\n");
+        printf("6. Trier les voitures par prix\n");
+        printf("7. Quitter\n");
+        printf("Entrez votre choix : ");
+        scanf("%d", &choix);
+
+        switch(choix) {
+            case 1:
+                afficherVoitures(voitures, nombreVoitures);
+                break;
+            case 2:
+                ajouterVoiture();
+                chargerVoituresDepuisFichier(voitures, &nombreVoitures);
+                break;
+            case 3:
+                modifierVoiture();
+                break;
+            case 4:
+                supprimerVoiture();
+                break;
+            case 5:
+                trimarque(voitures, nombreVoitures);
+                printf("Voitures triées par marque.\n");
+                afficherVoitures(voitures, nombreVoitures);
+                break;
+            case 6:
+                triprix(voitures, nombreVoitures);
+                printf("Voitures triées par prix de location.\n");
+                afficherVoitures(voitures, nombreVoitures);
+                break;
+            case 7:
+                sauvegarderVoituresDansFichier(voitures, nombreVoitures); // Sauvegarder avant de quitter
+                printf("Au revoir !\n");
+                break;
+            default:
+                printf("Choix invalide, veuillez réessayer.\n");
+                break;
+        }
+    } while (choix != 7);
+
+    return 0;
+}
